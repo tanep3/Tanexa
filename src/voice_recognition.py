@@ -302,8 +302,7 @@ def init(config):
     vad = webrtcvad.Vad()
     vad.set_mode(2)  # 感度の設定
     # voskの初期化、設定
-    model = vosk.Model("/home/tane/datas/voice/vosk-model-ja-0.22")  # VOSKのモデルパス
-    # model = vosk.Model("/home/tane/datas/voice/vosk-model-small-ja")  # VOSKのモデルパス
+    model = vosk.Model(config["vosk_model_path"])  # VOSKのモデルパス
     recognizer = vosk.KaldiRecognizer(model, config["vosk_samplerate"])
     # プロセスマネージャーのインスタンス化
     process_manager = ProcessManagement(vad, recognizer, config)
