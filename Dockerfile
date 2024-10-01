@@ -7,7 +7,7 @@ WORKDIR /app
 # 必要な依存パッケージをインストール
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
-    apt-get install -y cmake make build-essential libopenblas-dev git pkg-config libgomp1 libasound2-dev && \
+    apt-get install -y cmake make build-essential libopenblas-dev git pkg-config libgomp1 libasound2-dev portaudio19-dev ffmpeg  libwebrtc-audio-processing-dev libatlas-base-dev gfortran && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Pythonの依存関係をインストール
@@ -21,7 +21,7 @@ RUN export LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages/lib64:${LD_LI
 ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 
 # アプリケーションのソースコードをコピー
-COPY . /app
+COPY . .
 
 # エントリーポイントを設定
-CMD ["python", "./src/main.py"]
+CMD ["python", "src/main.py"]
