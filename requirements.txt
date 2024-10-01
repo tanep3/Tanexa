@@ -1,0 +1,7 @@
+webrtcvad
+vosk
+scipy
+sounddevice
+pydub
+regex
+simpleaudio

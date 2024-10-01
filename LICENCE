@@ -1,0 +1,39 @@
+MIT License
+
+Copyright (c) 2024 たねちゃんねる
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+Additional Licenses for Third-Party Components
+
+This system integrates several third-party components, each of which has its own license. The details are as follows:
+
+1. VOSK (Speech Recognition Engine)
+Licensed under the Apache License 2.0.  
+You may use, modify, and distribute VOSK under the terms of this license.  
+For more details, please see the VOSK license:  
+https://www.apache.org/licenses/LICENSE-2.0
+
+2. VAD (WebRTC - Voice Activity Detection)
+Licensed under the BSD License.  
+You may use, modify, and distribute the WebRTC VAD component under this permissive license.  
+For more details, please see the WebRTC license:  
+https://webrtc.github.io/webrtc-org/license/
+
+3. VOICEVOX-engine
+Licensed under the LGPL License (Lesser General Public License).  
+The VOICEVOX engine is licensed under LGPL, which allows for broad use and distribution. However, if you modify the VOICEVOX engine itself, you are required to release the modifications under the same LGPL license.  
+For more details, please see the VOICEVOX-engine license:  
+https://github.com/VOICEVOX/voicevox_engine/blob/master/LGPL_LICENSE
+
+---
+
+Notice for Model Files
+
+VOSK and VOICEVOX require specific model files for operation. These model files may have separate licenses, so please consult the license information for each model before distributing.
