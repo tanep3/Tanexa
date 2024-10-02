@@ -6,7 +6,7 @@ WORKDIR /app
 
 # 必要な依存パッケージをインストール
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
+RUN apt-get update --fix-missing && \
     apt-get install -y cmake make build-essential libopenblas-dev git pkg-config \
     libgomp1 libasound2-dev portaudio19-dev ffmpeg  \
     libwebrtc-audio-processing-dev libatlas-base-dev \
