@@ -27,17 +27,17 @@ ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 COPY . .
 
 # 非rootユーザーを作成
-RUN useradd -m pulseuser
-
-# PulseAudioの設定ディレクトリを作成
-RUN mkdir -p /home/pulseuser/.config/pulse
-
-# PulseAudioの設定ファイルを作成
-RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
-
+RUN useradd -m -u 1000 pulseuser
 # ユーザーを切り替え
 USER pulseuser
-
+# PulseAudioの設定ディレクトリを作成
+RUN mkdir -p /home/pulseuser/.config/pulse
+# PulseAudioの設定ディレクトリとファイルの権限を修正
+RUN chown -R pulseuser:pulseuser /home/pulseuser/.config/pulse
+# PulseAudioの設定ファイルを作成
+RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
+# PulseAudioデーモンを自動起動するスクリプト
+RUN echo -e "daemonize = no\ndisable-shm = true\n" > /home/pulseuser/.config/pulse/daemon.conf
 
 # エントリーポイントを設定
 CMD ["python", "src/main.py"]

@@ -14,7 +14,9 @@ services:
       - TANEXA_VOICEVOX_PREPHONEME_LENGTH=0.6 # 発声の前の無音時間
       - TANEXA_VOICEVOX_OUTPUT_SAMPLING_RATE=16000 # 音声の出力サンプリングレート
       - PULSE_SERVER=unix:/run/pulse/native # Linuxの場合
-    #  - PULSE_SERVER=tcp:localhost           # Mac、Windowsの場合
+      #  - PULSE_SERVER=tcp:localhost           # Mac、Windowsの場合
+      - PULSE_RUNTIME_PATH=/run/pulse/native
+      - PULSE_CONFIG_PATH=/home/pulseuser/.config/pulse
     volumes:
       - /VOSKのモデルファイルを置いているパス:/app/vosk_model # モデルファイルをコンテナにマウント
       - /run/user/1000/pulse:/run/user/1000/pulse # PulseAudioソケットをマウント
@@ -26,3 +28,4 @@ services:
       - audio # audioグループに追加
     privileged: true # コンテナがサウンドデバイスにアクセスできるようにする
     tty: true # ターミナルのインタラクションを有効にするための設定（必要に応じて）
+    user: pulseuser # pulseuserを指定して起動する
