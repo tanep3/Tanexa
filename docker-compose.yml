@@ -15,4 +15,13 @@ services:
       - TANEXA_VOICEVOX_OUTPUT_SAMPLING_RATE=16000  # 音声の出力サンプリングレート
     volumes:
       - /VOSKのモデルファイルを置いているパス:/app/vosk_model  # モデルファイルをコンテナにマウント
+      - /run/user/1000/pulse:/run/user/1000/pulse   # PulseAudioソケットをマウント
+      - $XDG_RUNTIME_DIR/pulse/native:/run/pulse/native   # PulseAudioのランタイムソケットをマウント
+    environment:
+      - PULSE_SERVER=unix:/run/pulse/native   # Linuxの場合
+    #  - PULSE_SERVER=tcp:localhost           # Mac、Windowsの場合
+    # サウンドデバイスサポートの追加
+    devices:
+      - /dev/snd:/dev/snd  # ホストのサウンドデバイスをコンテナに渡す
+    privileged: true        # コンテナがサウンドデバイスにアクセスできるようにする
     tty: true  # ターミナルのインタラクションを有効にするための設定（必要に応じて）
