@@ -35,9 +35,9 @@ RUN mkdir -p /home/pulseuser/.config/pulse
 # PulseAudioの設定ディレクトリとファイルの権限を修正
 RUN chown -R pulseuser:pulseuser /home/pulseuser/.config/pulse
 # PulseAudioの設定ファイルを作成
-RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
+RUN /bin/bash -c 'echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf'
 # PulseAudioデーモンを自動起動するスクリプト
-RUN echo -e "daemonize = no\ndisable-shm = true\n" > /home/pulseuser/.config/pulse/daemon.conf
+RUN  /bin/bash -c 'echo -e "daemonize = no\ndisable-shm = true\n" > /home/pulseuser/.config/pulse/daemon.conf'
 
 # エントリーポイントを設定
 CMD ["python", "src/main.py"]
