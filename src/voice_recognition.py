@@ -234,10 +234,12 @@ class ProcessManagement():
         recognized_word_process = Process(target=self.recognized_word_process_instance.run, args=())
         # マイクから音声入力を取得し、音声データをキューに送信
         p = pyaudio.PyAudio()
+        default_device_index = p.get_default_input_device_info()['index']
         stream = p.open(format=pyaudio.paInt16,
                         channels=1,
                         rate=self.config["mic_samplerate"],
                         input=True,
+                        input_device_index=default_device_index,
                         frames_per_buffer=self.config["vosk_blocksize"],
                         stream_callback=lambda indata, frames, time_info, status:
                             self.audio_callback(indata, frames, time_info, status, "mic_audio"))
