@@ -2,7 +2,8 @@
 
 ## 概要
 自作スマートスピーカーシステムです。  
-ご自身のPCのローカル環境で稼働し、AIと会話を楽しむことができるアプリです。
+ご自身のPCのローカル環境で稼働し、AIと会話を楽しむことができるアプリです。  
+- Raspberry Pi OSとintel Macで動作確認をしています。
 
 ## インストール方法
 ### 1. **voicevox_engineのインストール**
@@ -15,7 +16,13 @@
 [VOSKのサイト](https://alphacephei.com/vosk/models)から、音声認識のモデルファイルをダウンロードし、zipを解凍してから、任意の場所に配置して下さい。  
 オススメは、[vosk-model-ja-0.22](https://alphacephei.com/vosk/models/vosk-model-ja-0.22.zip)です。
 
-### 4. **Tanexaのインストール**
+### 4. **Macの場合、PortAudioのインストール**
+- Homebrewを使ってPortAudioをインストールします。  
+```bash
+brew install portaudio
+```
+ 
+### 5. **Tanexaのインストール**
 (1)[docker-compose.yml](./docker-compose.yml)をダウンロードし、任意の場所に配置する。  
 (2)docker-compose.ymlの必要な箇所をご自身の環境に合わせて修正して下さい。  
 「/VOSKのモデルファイルを置いているパス」には、上記 3. で配置したモデルファイルのフォルダパスを指定して下さい。  

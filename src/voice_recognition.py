@@ -5,7 +5,7 @@ import vosk
 import json
 import scipy.signal
 from multiprocessing import Process, Queue, Event
-import sounddevice as sd
+import pyaudio
 import time
 from abc import ABC, abstractmethod
 
@@ -212,7 +212,10 @@ class ProcessManagement():
     def audio_callback(self, indata, frames, time_info, status, in_event_type):
         if status:
             print(status)
-        audio_queue = self.event_bus.publish(in_event_type, indata.copy()) # 音声データをキューに追加
+        if indata:
+            audio_data = np.frombuffer(indata, dtype=np.int16)
+            self.event_bus.publish(in_event_type, audio_data)  # 音声データをキューに追加
+        return (None, pyaudio.paContinue)
 
     def start_process(self, is_measure_silence_time):
         # EventBusの初期化
@@ -225,16 +228,21 @@ class ProcessManagement():
         # プロセス停止用のEventフラグをOFFにする。
         self.stop_event.clear()
         # 並列プロセスを作成
-        resample_audio_process = Process(target=self.resample_audio_process_instance.run)
+        resample_audio_process = Process(target=self.resample_audio_process_instance.run, args=())
         vad_process = Process(target=self.vad_process_instance.run, args=(is_measure_silence_time,))
-        vosk_process = Process(target=self.vosk_process_instance.run)
-        recognized_word_process = Process(target=self.recognized_word_process_instance.run)
+        vosk_process = Process(target=self.vosk_process_instance.run, args=())
+        recognized_word_process = Process(target=self.recognized_word_process_instance.run, args=())
         # マイクから音声入力を取得し、音声データをキューに送信
-        stream = sd.InputStream(samplerate=self.config["mic_samplerate"], 
-                            blocksize=self.config["vosk_blocksize"], channels=1, dtype='int16',
-                            callback=lambda indata, frames, time_info, status:
-                                self.audio_callback(indata, frames, time_info, status, "mic_audio"))
-        stream.start()  # ストリームの開始
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=1,
+                        rate=self.config["mic_samplerate"],
+                        input=True,
+                        frames_per_buffer=self.config["vosk_blocksize"],
+                        stream_callback=lambda indata, frames, time_info, status:
+                            self.audio_callback(indata, frames, time_info, status, "mic_audio"))
+        # ストリームの開始
+        stream.start_stream()
         # プロセスの開始
         resample_audio_process.start()
         vad_process.start()
@@ -242,7 +250,7 @@ class ProcessManagement():
         recognized_word_process.start()
         # 無限ループだが、runningがFalseになると停止
         while running:
-            sd.sleep(10)
+            time.sleep(0.01)
             # 一つでもプロセスが終了したら、全てのプロセスを止めて終了する。
             if not resample_audio_process.is_alive() or \
                not vad_process.is_alive() or \
@@ -253,9 +261,10 @@ class ProcessManagement():
                 # フラグをセットしてプロセスに終了シグナルを送る
                 self.event_bus.publish("mic_audio", None)
                 self.stop_event.set()
-        if stream is not None:
-            stream.stop()
-            stream.close()
+        # if stream is not None:
+        stream.stop_stream()
+        stream.close()
+        p.terminate()  # PyAudioの終了処理
         # プロセスの停止（フラグにより自動で終了するため、待機）
         if resample_audio_process.is_alive:
             resample_audio_process.join()  # 完全終了を待つ

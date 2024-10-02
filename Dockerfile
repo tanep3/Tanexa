@@ -10,7 +10,7 @@ RUN apt-get update --fix-missing && \
     apt-get install -y cmake make build-essential libopenblas-dev git pkg-config \
     libgomp1 libasound2-dev portaudio19-dev ffmpeg  \
     libwebrtc-audio-processing-dev libatlas-base-dev \
-    gfortran pulseaudio pulseaudio-utils alsa-utils && \
+    gfortran && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Pythonの依存関係をインストール
@@ -25,19 +25,6 @@ ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 
 # アプリケーションのソースコードをコピー
 COPY . .
-
-# 非rootユーザーを作成
-RUN useradd -m -u 1000 pulseuser
-# ユーザーを切り替え
-USER pulseuser
-# PulseAudioの設定ディレクトリを作成
-RUN mkdir -p /home/pulseuser/.config/pulse
-# PulseAudioの設定ディレクトリとファイルの権限を修正
-RUN chown -R pulseuser:pulseuser /home/pulseuser/.config/pulse
-# PulseAudioの設定ファイルを作成
-RUN /bin/bash -c 'echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf'
-# PulseAudioデーモンを自動起動するスクリプト
-RUN  /bin/bash -c 'echo -e "daemonize = no\ndisable-shm = true\n" > /home/pulseuser/.config/pulse/daemon.conf'
 
 # エントリーポイントを設定
 CMD ["python", "src/main.py"]
