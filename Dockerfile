@@ -13,6 +13,12 @@ RUN apt-get update && \
     gfortran pulseaudio pulseaudio-utils alsa-utils && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# PulseAudioの設定ディレクトリを作成
+RUN mkdir -p /home/pulseuser/.config/pulse
+
+# PulseAudioの設定ファイルを作成
+RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
+
 # 非rootユーザーを作成
 RUN useradd -m pulseuser
 
