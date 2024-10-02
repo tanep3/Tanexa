@@ -13,18 +13,6 @@ RUN apt-get update && \
     gfortran pulseaudio pulseaudio-utils alsa-utils && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# PulseAudioの設定ディレクトリを作成
-RUN mkdir -p /home/pulseuser/.config/pulse
-
-# PulseAudioの設定ファイルを作成
-RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
-
-# 非rootユーザーを作成
-RUN useradd -m pulseuser
-
-# ユーザーを切り替え
-USER pulseuser
-
 # Pythonの依存関係をインストール
 COPY requirements.txt .
 RUN CMAKE_ARGS="-DGGML_OPENMP=ON -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_EXE_LINKER_FLAGS='-lpthread -Wl,--no-as-needed -pthread'" pip install --no-cache-dir -r requirements.txt
@@ -37,6 +25,19 @@ ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 
 # アプリケーションのソースコードをコピー
 COPY . .
+
+# 非rootユーザーを作成
+RUN useradd -m pulseuser
+
+# PulseAudioの設定ディレクトリを作成
+RUN mkdir -p /home/pulseuser/.config/pulse
+
+# PulseAudioの設定ファイルを作成
+RUN echo -e "autospawn = yes\ndaemon-binary = /usr/bin/pulseaudio" > /home/pulseuser/.config/pulse/client.conf
+
+# ユーザーを切り替え
+USER pulseuser
+
 
 # エントリーポイントを設定
 CMD ["python", "src/main.py"]
