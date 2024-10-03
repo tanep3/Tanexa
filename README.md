@@ -53,8 +53,14 @@ Tanexaの起動は**start.sh**です。
 - **Microsoft Visual C++ Build Tools**が必要です。[公式サイト](https://visualstudio.microsoft.com/ja/visual-cpp-build-tools/)からダウンロードしてインストールしてください。  
 - Tanexaのセットアップ＆起動  
 setup.batは初期セットアップ用のスクリプトです。start.batはTanexa起動用のスクリプトです。  
-最初に１回だけ**setup.bat**を実行します。  
+最初に１回だけ**setup.bat**を実行します。
+```bash
+.\setup.bat
+```  
 Tanexaの起動は**start.bat**です。  
+```bash
+.\start.bat
+```  
 終了は**Ctrl+c**です。  
 
 ### 4. **使い方**
