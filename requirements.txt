@@ -3,5 +3,6 @@ vosk
 scipy
 pydub
 regex
+pyyaml
 simpleaudio
 pyaudio

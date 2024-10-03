@@ -34,7 +34,7 @@ cd Tanexa
 # Mac、Linuxの場合
     "vosk_model_path": "/home/tane/datas/voice/vosk-model-ja-0.22",
 # Windowsの場合
-    "vosk_model_path": "/C/Users/tane/datas/vosk-model-ja-0.22",
+    "vosk_model_path": "C:/Users/tane/datas/vosk-model-ja-0.22",
 ```
 
 (2)**Mac、ubuntu、RaspberryPiOSの場合**  

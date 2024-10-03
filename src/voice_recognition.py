@@ -4,7 +4,7 @@ import webrtcvad
 import vosk
 import json
 import scipy.signal
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process, Queue, Event, Pipe
 import pyaudio
 import time
 from abc import ABC, abstractmethod
@@ -68,9 +68,9 @@ class ResampleAudioProcess(RecognitionProcess):
 
 # 音声のノイズ除去、無音時間の計測を行うプロセス
 class VadProcess(RecognitionProcess):
-    def __init__(self, event_bus, stop_event, in_event_type, out_event_type, vad, config):
+    def __init__(self, event_bus, stop_event, in_event_type, out_event_type, vad_child_conn, config):
         super().__init__(event_bus, stop_event, in_event_type, out_event_type)
-        self.vad = vad
+        self.vad_child_conn = vad_child_conn
         self.config = config
         self.samplerate = config["vosk_samplerate"]
 
@@ -121,15 +121,17 @@ class VadProcess(RecognitionProcess):
             frame = vad_audio_chunk[i:i + frame_size]  # フレームを取り出す
             if len(frame) < frame_size:
                 break  # フレームが不足している場合は評価せずに終了
-            if self.vad.is_speech(frame.tobytes(), self.samplerate):
+            self.vad_child_conn.send((frame.tobytes(), self.samplerate))
+            result = self.vad_child_conn.recv()
+            if result:
                 return True
         return False
 
 # 音声認識を行うプロセス
 class VoskProcess(RecognitionProcess):
-    def __init__(self, event_bus, stop_event, in_event_type, out_event_type, recognizer, config):
+    def __init__(self, event_bus, stop_event, in_event_type, out_event_type, vosk_child_conn, config):
         super().__init__(event_bus, stop_event, in_event_type, out_event_type)
-        self.recognizer = recognizer
+        self.vosk_child_conn = vosk_child_conn
         self.config = config
 
     def subscribe_Queue(self):
@@ -159,16 +161,19 @@ class VoskProcess(RecognitionProcess):
         """
         audio_bytes = audio_buffer.tobytes()
         # 音声データをVOSKに渡して認識
-        if self.recognizer.AcceptWaveform(audio_bytes):
-            print('VOSK: OK')
-            result = self.recognizer.Result()
-            result_json = json.loads(result)
-            return result_json.get('text')
-        else:
-            print('VOSK: partial')
-            final_result = self.recognizer.FinalResult()
-            final_json = json.loads(final_result)
-            return final_json.get('text')
+        self.vosk_child_conn.send(audio_bytes)
+        recoginizer_result = self.vosk_child_conn.recv()
+        return recoginizer_result
+        # if self.recognizer.AcceptWaveform(audio_bytes):
+        #     print('VOSK: OK')
+        #     result = self.recognizer.Result()
+        #     result_json = json.loads(result)
+        #     return result_json.get('text')
+        # else:
+        #     print('VOSK: partial')
+        #     final_result = self.recognizer.FinalResult()
+        #     final_json = json.loads(final_result)
+        #     return final_json.get('text')
 
 # ウェイクワード判定プロセス
 class WakeWordProcess(RecognitionProcess):
@@ -197,15 +202,13 @@ class TextAccumulationProcess(RecognitionProcess):
 
 # プロセスを統合管理するクラス
 class ProcessManagement():
-    def __init__(self, vad, recognizer, config):
-        self.vad = vad
-        self.recognizer = recognizer
+    def __init__(self, vad_child_conn, vosk_child_conn, config):
         self.config = config
         self.event_bus = EventBus()
         self.stop_event = Event()  # プロセス停止用のイベントフラグ
         self.resample_audio_process_instance = ResampleAudioProcess(self.event_bus, self.stop_event, "mic_audio", "resampled_audio", self.config)
-        self.vad_process_instance = VadProcess(self.event_bus, self.stop_event, "resampled_audio", "vad_audio", self.vad, self.config)
-        self.vosk_process_instance = VoskProcess(self.event_bus, self.stop_event, "vad_audio", "recognized_text", self.recognizer, self.config)
+        self.vad_process_instance = VadProcess(self.event_bus, self.stop_event, "resampled_audio", "vad_audio", vad_child_conn, self.config)
+        self.vosk_process_instance = VoskProcess(self.event_bus, self.stop_event, "vad_audio", "recognized_text", vosk_child_conn, self.config)
         self.recognized_word_process_instance = None
 
     # マイクからの音声データ取得
@@ -306,15 +309,59 @@ def record_and_transcribe():
             break
     return result_text
 
-def init(config):
-    # グローバル処理
-    global process_manager
+def vad_parent(conn, is_ready):
     # vadの初期化、設定
     vad = webrtcvad.Vad()
     vad.set_mode(2)  # 感度の設定
+    is_ready.set()
+    while True:
+        try:
+            frame, samplerate = conn.recv()
+            result = vad.is_speech(frame, samplerate)
+            conn.send(result)
+        except BrokenPipeError:
+            break
+
+def vosk_parent(conn, config, is_ready):
     # voskの初期化、設定
     model = vosk.Model(config["vosk_model_path"])  # VOSKのモデルパス
     recognizer = vosk.KaldiRecognizer(model, config["vosk_samplerate"])
+    is_ready.set()
+    while True:
+        try:
+            audio_bytes = conn.recv()
+            if recognizer.AcceptWaveform(audio_bytes):
+                print('VOSK: OK')
+                result = recognizer.Result()
+                result_json = json.loads(result)
+                conn.send(result_json.get('text'))
+            else:
+                print('VOSK: partial')
+                final_result = recognizer.FinalResult()
+                final_json = json.loads(final_result)
+                conn.send(final_json.get('text'))
+        except BrokenPipeError:
+            break
+
+def init(config):
+    # グローバル処理
+    global process_manager
+    vad_parent_conn, vad_child_conn = Pipe()
+    vosk_parent_conn, vosk_child_conn = Pipe()
+
+    # 親プロセスの開始
+    is_ready = Event()
+    is_ready.clear()
+    vad = Process(target=vad_parent, args=(vad_parent_conn,is_ready))
+    vad.start()
+    while not is_ready.is_set():
+        continue
+    vosk = Process(target=vosk_parent, args=(vosk_parent_conn,config, is_ready))
+    vosk.start()
+    is_ready.clear()
+    while not is_ready.is_set():
+        continue
+
     # プロセスマネージャーのインスタンス化
-    process_manager = ProcessManagement(vad, recognizer, config)
+    process_manager = ProcessManagement(vad_child_conn, vosk_child_conn, config)
 

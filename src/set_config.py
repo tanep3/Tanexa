@@ -1,6 +1,7 @@
 import yaml
+import os
 
-def get(filename):
+def get():
     # デフォルト値
     config_dict = {
         "wake_word": "コンピュータ",
@@ -20,6 +21,7 @@ def get(filename):
     }
 
     # configファイルを読み込む
+    filename = os.path.join(os.path.dirname(__file__), '..', 'config.yml')
     with open(filename, 'r', encoding='utf-8') as f:
         config_yml = yaml.safe_load(f)
 

@@ -6,7 +6,7 @@ import llm_inference
 import speak
 import set_config
 
-config = set_config.get("../config.yml")
+config = set_config.get()
 
 if __name__ == "__main__":
     # llm_inference.llm_model_load(config)
