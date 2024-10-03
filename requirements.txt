@@ -1,7 +1,7 @@
-webrtcvad  # VAD。ノイズ除去、無音時間計測に使用。
-vosk       # 音声認識。
+webrtcvad
+vosk
 scipy
-pyaudio    # マイク入力に必要
 pydub
 regex
-simpleaudio  # スピーカー出力に使用
+simpleaudio
+pyaudio

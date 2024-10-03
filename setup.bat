@@ -25,12 +25,10 @@ REM pipのアップグレード
 python -m pip install --upgrade pip
 
 REM 依存関係のインストール
-pip install -r requirements.txt
-
-IF %ERRORLEVEL% NEQ 0 (
-    echo pipのインストールに失敗しました。pipwinを使用します。
-    pip install pipwin
-    FOR /F "tokens=*" %%i IN (requirements.txt) DO (
+pip install pipwin
+FOR /F "tokens=*" %%i IN (requirements.txt) DO (
+    pip install %%i
+    IF %ERRORLEVEL% NEQ 0 (
         pipwin install %%i
         IF %ERRORLEVEL% NEQ 0 (
             echo %%iのインストールに失敗しました。
@@ -38,6 +36,6 @@ IF %ERRORLEVEL% NEQ 0 (
         )
     )
 )
- 
+
 echo セットアップが完了しました。'start.bat' でアプリケーションを起動できます。
 pause
