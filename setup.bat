@@ -38,6 +38,6 @@ IF %ERRORLEVEL% NEQ 0 (
         )
     )
 )
-
+ 
 echo セットアップが完了しました。'start.bat' でアプリケーションを起動できます。
 pause
