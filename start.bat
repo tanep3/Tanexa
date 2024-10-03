@@ -1,4 +1,4 @@
-REM 仮想環境の有効化
+﻿REM 仮想環境の有効化
 call venv\Scripts\activate
 
 REM Tanexaの起動

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 
 REM Python 3.11.2のインストール確認
 python --version 2>NUL | findstr /C:"Python 3.11" >NUL
