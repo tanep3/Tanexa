@@ -15,6 +15,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
             echo "Homebrewをインストールしています..."
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            xcode-select --install
+            brew install openssl readline zlib
         else
             echo "Homebrewが必要です。スクリプトを終了します。"
             exit 1
@@ -29,21 +31,36 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 
     # シェルの設定ファイルにpyenvの初期化を追加
-    SHELL_NAME=$(basename "$SHELL")
-    if [ "$SHELL_NAME" == "bash" ]; then
-        PROFILE_FILE="$HOME/.bash_profile"
-    elif [ "$SHELL_NAME" == "zsh" ]; then
-        PROFILE_FILE="$HOME/.zshrc"
-    else
-        PROFILE_FILE="$HOME/.profile"
-    fi
+    # pyenvの初期化を.bashrcと.zshrcの両方に追加
+    # 対象となる設定ファイルをリストアップ
+    PROFILE_FILES=("$HOME/.bashrc" "$HOME/.zshrc")
 
-    if ! grep -q 'pyenv init' "$PROFILE_FILE"; then
-        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$PROFILE_FILE"
-        echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> "$PROFILE_FILE"
-        echo -e 'eval "$(pyenv init -)"' >> "$PROFILE_FILE"
-        source "$PROFILE_FILE"
-    fi
+    for PROFILE_FILE in "${PROFILE_FILES[@]}"; do
+        if [ -f "$PROFILE_FILE" ]; then
+            # すでにpyenvの設定が追加されているか確認
+            if ! grep -q 'pyenv init' "$PROFILE_FILE"; then
+                echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$PROFILE_FILE"
+                echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> "$PROFILE_FILE"
+                echo 'eval "$(pyenv init --path)"' >> "$PROFILE_FILE"
+                echo 'eval "$(pyenv init -)"' >> "$PROFILE_FILE"
+                echo "export LDFLAGS=\"-L$(brew --prefix openssl)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib\"" >> "$PROFILE_FILE"
+                echo "export CPPFLAGS=\"-I$(brew --prefix openssl)/include -I$(brew --prefix readline)/include -I$(brew --prefix zlib)/include\"" >> "$PROFILE_FILE"
+                echo "export PKG_CONFIG_PATH=\"$(brew --prefix openssl)/lib/pkgconfig:$(brew --prefix readline)/lib/pkgconfig:$(brew --prefix zlib)/lib/pkgconfig\"" >> "$PROFILE_FILE"
+                echo "pyenv settings added to $PROFILE_FILE"
+            else
+                echo "pyenv settings already exist in $PROFILE_FILE"
+            fi
+        else
+            echo "$PROFILE_FILE does not exist, skipping."
+        fi
+    done
+
+    # 設定ファイルを読み込む
+    for PROFILE_FILE in "${PROFILE_FILES[@]}"; do
+        if [ -f "$PROFILE_FILE" ]; then
+            source "$PROFILE_FILE"
+        fi
+    done
 
     # 必要なライブラリのインストール
     brew install portaudio

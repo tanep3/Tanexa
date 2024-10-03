@@ -164,16 +164,6 @@ class VoskProcess(RecognitionProcess):
         self.vosk_child_conn.send(audio_bytes)
         recoginizer_result = self.vosk_child_conn.recv()
         return recoginizer_result
-        # if self.recognizer.AcceptWaveform(audio_bytes):
-        #     print('VOSK: OK')
-        #     result = self.recognizer.Result()
-        #     result_json = json.loads(result)
-        #     return result_json.get('text')
-        # else:
-        #     print('VOSK: partial')
-        #     final_result = self.recognizer.FinalResult()
-        #     final_json = json.loads(final_result)
-        #     return final_json.get('text')
 
 # ウェイクワード判定プロセス
 class WakeWordProcess(RecognitionProcess):
